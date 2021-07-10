@@ -25,11 +25,14 @@ public class AlertRabbit {
             settings = new Properties();
             settings.load(inputStream);
             Class.forName(settings.getProperty("driver-class-name"));
+            try {
             connection = DriverManager.getConnection(
                     settings.getProperty("url"),
                     settings.getProperty("username"),
-                    settings.getProperty("password")
-            );
+                    settings.getProperty("password"));
+            } catch (Exception ce) {
+                LOG.error("Error DriverManager.getConnection", ce);
+            }
         } catch (Exception e) {
             LOG.error("Error opening file rabbit.properties", e);
         }
