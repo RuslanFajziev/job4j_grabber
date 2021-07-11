@@ -16,36 +16,49 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AlertRabbit {
-    private static Connection connection;
-    private static Properties settings;
     private static final Logger LOG = LoggerFactory.getLogger(AlertRabbit.class.getName());
 
     public static void init() {
         try (InputStream inputStream = AlertRabbit.class.getClassLoader().getResourceAsStream("rabbit.properties")) {
-            settings = new Properties();
+            Properties settings = new Properties();
             settings.load(inputStream);
             Class.forName(settings.getProperty("driver-class-name"));
-            try {
-            connection = DriverManager.getConnection(
+            try (Connection connection = DriverManager.getConnection(
                     settings.getProperty("url"),
                     settings.getProperty("username"),
-                    settings.getProperty("password"));
-            } catch (Exception ce) {
-                LOG.error("Error DriverManager.getConnection", ce);
+                    settings.getProperty("password")
+            )) {
+                try {
+                    Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
+                    scheduler.start();
+                    JobDataMap data = new JobDataMap();
+                    data.put("store", connection);
+                    JobDetail job = newJob(Rabbit.class)
+                            .usingJobData(data)
+                            .build();
+                    SimpleScheduleBuilder times = simpleSchedule()
+                            .withIntervalInSeconds(Integer.parseInt(settings.getProperty("rabbit.interval")))
+                            .repeatForever();
+                    Trigger trigger = newTrigger()
+                            .startNow()
+                            .withSchedule(times)
+                            .build();
+                    scheduler.scheduleJob(job, trigger);
+                    Thread.sleep(10000);
+                    scheduler.shutdown();
+                } catch (Exception se) {
+                    LOG.error("Error run Scheduler", se);
+                }
+            } catch (Exception ec) {
+                LOG.error("DriverManager.getConnection", ec);
             }
         } catch (Exception e) {
             LOG.error("Error opening file rabbit.properties", e);
         }
     }
 
-    public static void close() throws SQLException {
-        if (connection != null) {
-            connection.close();
-        }
-    }
-
-    public static void add() {
-        try (PreparedStatement statement = connection.prepareStatement("insert into rabbit(create_date) values(?)")) {
+    public static void add(Connection cn) {
+        try (PreparedStatement statement = cn.prepareStatement("insert into rabbit(create_date) values(?)")) {
             statement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
             statement.execute();
         } catch (Exception e) {
@@ -55,28 +68,6 @@ public class AlertRabbit {
 
     public static void main(String[] args) {
         init();
-        try {
-            Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-            scheduler.start();
-            JobDataMap data = new JobDataMap();
-            data.put("store", connection);
-            JobDetail job = newJob(Rabbit.class)
-                    .usingJobData(data)
-                    .build();
-            SimpleScheduleBuilder times = simpleSchedule()
-                    .withIntervalInSeconds(Integer.parseInt(settings.getProperty("rabbit.interval")))
-                    .repeatForever();
-            Trigger trigger = newTrigger()
-                    .startNow()
-                    .withSchedule(times)
-                    .build();
-            scheduler.scheduleJob(job, trigger);
-            Thread.sleep(10000);
-            scheduler.shutdown();
-            close();
-        } catch (Exception se) {
-            LOG.error("Error run Scheduler", se);
-        }
     }
 
     public static class Rabbit implements Job {
@@ -93,7 +84,7 @@ public class AlertRabbit {
             } catch (SQLException e) {
                 LOG.error("Error getMetaData()", e);
             }
-            add();
+            add(cn);
         }
     }
 }
