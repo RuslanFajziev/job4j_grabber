@@ -6,37 +6,60 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-public class SqlRuParse {
-    private static int numberRows = 0;
+public class SqlRuParse implements Parse {
+    private final DateTimeParser dateTimeParser;
 
-    public static void parse(String url) throws IOException {
-        Document doc = Jsoup.connect(url).get();
+    public SqlRuParse(DateTimeParser dateTimeParser) {
+        this.dateTimeParser = dateTimeParser;
+    }
+
+    public String getDescription(String link) throws IOException {
+        Document doc = Jsoup.connect(link).get();
+        return doc.getElementsByClass("msgBody").get(1).text();
+    }
+
+    @Override
+    public List<Post> list(String link) throws IOException {
+        List<Post> lstPost = new ArrayList<>();
+        Document doc = Jsoup.connect(link).get();
         Elements row = doc.getElementsByClass("ForumTable").get(0).getElementsByTag("tr");
         for (Element td : row) {
-            if (td.text().contains("Тема Автор Ответов Просм. Дата")) {
+            if (td.text().contains("Тема Автор Ответов Просм. Дата") || td.text().contains("Важно:")) {
                 continue;
             }
             Elements nm = td.getElementsByTag("tr").get(0).getElementsByTag("td");
             String elLink = nm.get(1).getElementsByTag("a").get(0).attr("href");
-            String elSubject = nm.get(1).getElementsByTag("a").get(0).text();
+            String elTitle = nm.get(1).getElementsByTag("a").get(0).text();
             String elDate = nm.get(5).text();
-            System.out.printf("%s - \"%s\" - (%s)\n", elLink, elSubject, elDate);
-            numberRows += 1;
+            LocalDateTime elCreated = dateTimeParser.parse(elDate);
+            String elDescription = getDescription(elLink);
+            Post elmPost = new Post(elTitle, elLink, elDescription, elCreated);
+            lstPost.add(elmPost);
         }
+        return lstPost;
     }
 
-    public static void main(String[] args) throws Exception {
-        String baseUrl = "https://www.sql.ru/forum/job-offers";
-        System.out.println("-------------------------------------------------------------------------------------");
-        System.out.println("Ссылка                                           Тема                            Дата");
-        System.out.println("-------------------------------------------------------------------------------------");
-        for (int index = 1; index <= 5; index++) {
-            String queryUrl = baseUrl + "/" + index;
-            parse(queryUrl);
-        }
-        System.out.println("-------------------------------------------------------------------------------------");
-        System.out.printf("           Number of rows: %s%n", numberRows);
-        System.out.println("-------------------------------------------------------------------------------------");
+    @Override
+    public Post detail(String link) throws IOException {
+        Document doc = Jsoup.connect(link).get();
+        String elDescription = doc.getElementsByClass("msgBody").get(1).text();
+        String elDate = doc.getElementsByClass("msgFooter").get(0).text().substring(0, 15);
+        LocalDateTime elCreated = dateTimeParser.parse(elDate);
+        String msbHeader = doc.getElementsByClass("messageHeader").get(0).text();
+        String elTitle = msbHeader.substring(0, msbHeader.length() - 6);
+        return new Post(elTitle, link, elDescription, elCreated);
+    }
+
+    public static void main(String[] args) throws IOException {
+        DateTimeParser dateTimeParser = new SqlRuDateTimeParser();
+        SqlRuParse sqlRuParse = new SqlRuParse(dateTimeParser);
+        List<Post> lstPost = sqlRuParse.list("https://www.sql.ru/forum/job-offers");
+        System.out.println(lstPost.size());
+        System.out.println(lstPost.get(5));
+        System.out.println(sqlRuParse.detail("https://www.sql.ru/forum/1337426/arhitektor-cifrovyh-modeley-ofis-zp-200-300k"));
     }
 }
