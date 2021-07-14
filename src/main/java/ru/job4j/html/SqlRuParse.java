@@ -47,7 +47,7 @@ public class SqlRuParse implements Parse {
     public Post detail(String link) throws IOException {
         Document doc = Jsoup.connect(link).get();
         String elDescription = doc.getElementsByClass("msgBody").get(1).text();
-        String elDate = doc.getElementsByClass("msgFooter").get(0).text().substring(0, 15);
+        String elDate = doc.getElementsByClass("msgFooter").get(0).text().substring(1, 16);
         LocalDateTime elCreated = dateTimeParser.parse(elDate);
         String msbHeader = doc.getElementsByClass("messageHeader").get(0).text();
         String elTitle = msbHeader.substring(0, msbHeader.length() - 6);
