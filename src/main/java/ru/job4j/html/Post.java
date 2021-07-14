@@ -63,7 +63,7 @@ public class Post {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, link, description, created);
+        return Objects.hash(id, title, link, created);
     }
 
     @Override
