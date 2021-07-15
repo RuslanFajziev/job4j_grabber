@@ -82,7 +82,7 @@ public class PsqlStore implements Store, AutoCloseable {
         try (PreparedStatement statement = cn.prepareStatement("select * from post where id = ?")) {
             statement.setInt(1, id);
             try (ResultSet resultSet = statement.executeQuery()) {
-                while (resultSet.next()) {
+                if (resultSet.next()) {
                     String title = resultSet.getString("name");
                     String link = resultSet.getString("link");
                     String description = resultSet.getString("text");
@@ -110,10 +110,10 @@ public class PsqlStore implements Store, AutoCloseable {
             PsqlStore psqlStore = new PsqlStore(cfg);
             DateTimeParser dateTimeParser = new SqlRuDateTimeParser();
             SqlRuParse sqlRuParse = new SqlRuParse(dateTimeParser);
-            Post savePost = sqlRuParse.detail("https://www.sql.ru/forum/1302441/senior-mssql-engineer-spb-160");
+            Post savePost = sqlRuParse.detail("https://www.sql.ru/forum/1336341/java-razrabotchik-v-finteh-kompaniu");
             System.out.println(savePost);
             psqlStore.save(savePost);
-            Post findPost = psqlStore.findById(9);
+            Post findPost = psqlStore.findById(10);
             System.out.println(findPost);
         } catch (Exception e) {
             LOG.error("Error getResourceAsStream(\"PsqlStore.properties\")", e);
