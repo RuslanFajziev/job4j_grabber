@@ -7,6 +7,7 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -89,8 +90,13 @@ public class Grabber implements Grab {
             Store store = (Store) map.get("store");
             Parse parse = (Parse) map.get("parse");
             try {
-                List<Post> lstPost = parse.list("https://www.sql.ru/forum/job-offers");
-                for (Post post : lstPost) {
+                List<Post> lstPostAll = new ArrayList<>();
+                List<Post> lstPost;
+                for (int index = 1; index <= 5; index++) {
+                    lstPost = parse.list("https://www.sql.ru/forum/job-offers/" + index);
+                    lstPostAll.addAll(lstPost);
+                }
+                for (Post post : lstPostAll) {
                     store.save(post);
                 }
             } catch (Exception pe) {
@@ -106,6 +112,6 @@ public class Grabber implements Grab {
         Store store = grab.store();
         DateTimeParser dateTimeParser = new SqlRuDateTimeParser();
         grab.init(new SqlRuParse(dateTimeParser), store, scheduler);
-        grab.web(store);
+//        grab.web(store);
     }
 }
