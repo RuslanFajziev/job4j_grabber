@@ -112,6 +112,6 @@ public class Grabber implements Grab {
         Store store = grab.store();
         DateTimeParser dateTimeParser = new SqlRuDateTimeParser();
         grab.init(new SqlRuParse(dateTimeParser), store, scheduler);
-//        grab.web(store);
+        grab.web(store);
     }
 }
