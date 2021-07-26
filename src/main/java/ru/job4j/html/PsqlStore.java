@@ -113,7 +113,7 @@ public class PsqlStore implements Store, AutoCloseable {
             Post savePost = sqlRuParse.detail("https://www.sql.ru/forum/1336341/java-razrabotchik-v-finteh-kompaniu");
             System.out.println(savePost);
             psqlStore.save(savePost);
-            Post findPost = psqlStore.findById(10);
+            Post findPost = psqlStore.findById(516);
             System.out.println(findPost);
         } catch (Exception e) {
             LOG.error("Error getResourceAsStream(\"PsqlStore.properties\")", e);
