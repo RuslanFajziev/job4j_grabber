@@ -28,10 +28,10 @@ insert into person(id, name, company_id) values(6, 'Rybin', 5);
 insert into person(id, name, company_id) values(7, 'Nazarenko', 5);
     -- 1. В одном запросе получить --
 -- имена всех person, которые не состоят в компании с id = 5 --
-select name from person where company_id <> 5;
 -- название компании для каждого человека --
 select pr.id, pr.name, cm.name as "company" from person as pr
-join company as cm on cm.id = pr.company_id;
+join company as cm on cm.id = pr.company_id
+where pr.company_id <> 5;
     -- 2. Необходимо выбрать название компании с максимальным количеством человек + количество человек в этой компании --
 select * from
 (select cm.name as "company", count(*) as "count" from person as pr
