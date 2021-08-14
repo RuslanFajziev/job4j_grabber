@@ -1,5 +1,6 @@
 package ru.job4j.cache;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Emulator {
@@ -9,7 +10,7 @@ public class Emulator {
         System.out.println("-------------------------------------------------");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Scanner input = new Scanner(System.in);
         printConsole("Enter the path to the file directory");
         String txt = input.nextLine();
@@ -17,7 +18,7 @@ public class Emulator {
         printConsole("Enter a file name to read or EXIT to shut down");
         txt = input.nextLine();
         while (!txt.equals("exit")) {
-            printConsole(dirFileCache.load(txt));
+            printConsole(dirFileCache.get(txt));
             printConsole("Enter a file name to read or EXIT to shut down");
             txt = input.nextLine();
         }
