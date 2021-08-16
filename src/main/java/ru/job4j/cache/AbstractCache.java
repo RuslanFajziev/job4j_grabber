@@ -1,6 +1,5 @@
 package ru.job4j.cache;
 
-import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +18,7 @@ public abstract class AbstractCache<K, V> {
         cache.put(key, new SoftReference<>(value));
     }
 
-    public V get(K key) throws IOException {
+    public V get(K key) {
         if (cache.containsKey(key)) {
             SoftReference<V> softReference = cache.get(key);
             if (softReference != null) {
@@ -38,6 +37,6 @@ public abstract class AbstractCache<K, V> {
         return txt;
     }
 
-    protected abstract V load(K key) throws IOException;
+    protected abstract V load(K key);
 
 }
