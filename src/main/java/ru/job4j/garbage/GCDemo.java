@@ -24,6 +24,11 @@ public class GCDemo {
         System.out.println(sizeOf(usr));
         System.out.println(sizeOf(usr2));
         info();
+        User usr3 = new User();
+        User usr4 = new User();
+        System.out.println(sizeOf(usr3));
+        System.gc();
+        info();
         System.gc();
         info();
     }
