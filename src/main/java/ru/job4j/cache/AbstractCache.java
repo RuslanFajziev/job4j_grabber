@@ -8,33 +8,27 @@ public abstract class AbstractCache<K, V> {
 
     protected final Map<K, SoftReference<V>> cache = new HashMap<>();
 
-    public static void printConsole(String txt) {
-        System.out.println("-------------------------------------------------");
-        System.out.println(txt);
-        System.out.println("-------------------------------------------------");
-    }
-
     public void put(K key, V value) {
         cache.put(key, new SoftReference<>(value));
     }
 
     public V get(K key) {
         if (cache.containsKey(key)) {
-            SoftReference<V> softReference = cache.get(key);
-            if (softReference != null) {
-                printConsole("          *** Data from the cache ***");
-                return softReference.get();
+            V data = cache.get(key).get();
+            if (data != null) {
+                return (V) (data + " (<-- Data from the cache)");
             } else {
-                printConsole("          *** Loading data into a cache ***");
-                V txt = load(key);
-                put(key, txt);
-                return txt;
+                data = load(key);
+                put(key, data);
+                return (V) (data + " (--> Loading data into a cache)");
             }
         }
-        printConsole("          *** Loading data into a cache ***");
-        V txt = load(key);
-        put(key, txt);
-        return txt;
+        V data = load(key);
+        if (data == null) {
+            return (V) ("***** File not found, verify file name is correct *****");
+        }
+        put(key, data);
+        return (V) (data + " (--> Loading data into a cache)");
     }
 
     protected abstract V load(K key);
