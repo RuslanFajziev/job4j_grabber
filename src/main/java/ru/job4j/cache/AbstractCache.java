@@ -12,23 +12,32 @@ public abstract class AbstractCache<K, V> {
         cache.put(key, new SoftReference<>(value));
     }
 
+    public static void printConsole(String txt) {
+        System.out.println("-------------------------------------------------");
+        System.out.println(txt);
+    }
+
     public V get(K key) {
         if (cache.containsKey(key)) {
             V data = cache.get(key).get();
             if (data != null) {
-                return (V) (data + " (<-- Data from the cache)");
+                printConsole("                (<-- Data from the cache)");
+                return data;
             } else {
                 data = load(key);
                 put(key, data);
-                return (V) (data + " (--> Loading data into a cache)");
+                printConsole("                (--> Loading data into a cache)");
+                return data;
             }
         }
         V data = load(key);
         if (data == null) {
-            return (V) ("***** File not found, verify file name is correct *****");
+            printConsole("***** File not found, verify file name is correct *****");
+            return data;
         }
+        printConsole("                (--> Loading data into a cache)");
         put(key, data);
-        return (V) (data + " (--> Loading data into a cache)");
+        return data;
     }
 
     protected abstract V load(K key);
